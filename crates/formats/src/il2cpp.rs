@@ -480,18 +480,21 @@ impl<'a> Metadata<'a> {
         }
     }
 
-    /// A literal start table has to run in order from the data's start to its end.
+    /// A literal start table has to run in order from the data's start (0) to its end.
     fn literal_starts_fit(&self) -> Result<(), String> {
         if self.layout.literals != Literals::Starts {
             return Ok(());
         }
         let table = self.section(LITERALS);
         let data = self.section(LITERAL_DATA).len();
+        if table.is_empty() && data > 0 {
+            return Err(format!("it has {data} bytes of string literal data but no literal start table"));
+        }
         let mut last = 0usize;
         for i in 0..table.len() / 4 {
             let Some(start) = Reader::new(table).u32_le(i * 4).map(|v| v as usize) else { return Err("a literal record can't be read".into()) };
-            if start < last || start > data {
-                return Err(format!("its string literal {i} starts at {start}, out of order or past the literal data"));
+            if (i == 0 && start != 0) || start < last || start > data {
+                return Err(format!("its string literal {i} starts at {start}, out of order, past the literal data or not at its start"));
             }
             last = start;
         }
@@ -719,6 +722,10 @@ mod tests {
         let mut backwards = original.clone();
         backwards[table + 8..table + 12].copy_from_slice(&5u32.to_le_bytes());
         assert!(matches!(read(&backwards), Reading::HeaderOnly { why, .. } if why.contains("out of order")));
+        // The first literal starting after the data's start, which would cut its text short.
+        let mut late = original.clone();
+        late[table..table + 4].copy_from_slice(&1u32.to_le_bytes());
+        assert!(matches!(read(&late), Reading::HeaderOnly { why, .. } if why.contains("not at its start")));
         // The last start falling short of the data's end.
         let mut short = original;
         short[table + 12..table + 16].copy_from_slice(&5u32.to_le_bytes());

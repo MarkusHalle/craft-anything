@@ -408,14 +408,14 @@ mod tests {
     fn an_unknown_version_gives_its_header_and_a_limitation() {
         let dir = tempfile::tempdir().unwrap();
         let mut bytes = sample();
-        bytes[4..8].copy_from_slice(&39i32.to_le_bytes());
+        bytes[4..8].copy_from_slice(&40i32.to_le_bytes());
         let path = write(dir.path(), "global-metadata.dat", &bytes);
         let v = call(&engine(), "game_unity_code_names_show", json!({"path": path, "view": "types"}));
         assert_eq!(v["result"]["reading"], "header_only");
-        assert_eq!(v["result"]["metadata_version"], 39);
+        assert_eq!(v["result"]["metadata_version"], 40);
         assert!(v["result"].get("types").is_none());
         assert_eq!(v["confidence"], "inferred");
-        assert!(v["summary"].as_str().unwrap().contains("39"));
+        assert!(v["summary"].as_str().unwrap().contains("40"));
     }
 
     #[test]

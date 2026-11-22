@@ -2354,7 +2354,8 @@ Owner: open · Status: in progress
       file can be checked
 - [x] Read IL2CPP metadata 39 (380-byte header of (offset, size, count) triples, literals found by
       their start offsets, two-byte type indexes), with its layout measured on a shipped game's file
-      and every name checked against another tool's reading of the same file
+      and the type names of its largest assembly (5,394) checked against another tool's reading of
+      the same file
       — claimed: MarkusHalle, branch feature/r3.11-il2cpp-v39
 - [x] Bun: take each module's stored source map and bytecode out as files.
       — claimed: Afloat16, branch feature/r3.11-bun-module-payloads
